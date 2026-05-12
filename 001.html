@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>在线表单系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', '微软雅黑', 'PingFang SC', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #fff7ef 0%, #feecd9 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* ========== 隐私侧边栏 ========== */
+        .privacy-corner {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .privacy-toggle {
+            background: #ff9a76;
+            border: none;
+            width: 52px;
+            height: 52px;
+            border-radius: 30px;
+            font-size: 26px;
+            cursor: pointer;
+            box-shadow: 0 6px 14px rgba(190, 80, 35, 0.25);
+            transition: all 0.2s ease;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .privacy-toggle:hover {
+            background: #f16436;
+            transform: scale(1.02);
+        }
+
+        .privacy-panel {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 340px;
+            background: #fffef8;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(100, 50, 20, 0.2);
+            backdrop-filter: blur(2px);
+            border: 1px solid #ffdecb;
+            padding: 20px 18px;
+            z-index: 999;
+            display: none;
+        }
+
+        .privacy-panel.show {
+            display: block;
+            animation: fadeSlideIn 0.2s ease;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .privacy-panel h3 {
+            color: #c25a36;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            border-left: 4px solid #ffa271;
+            padding-left: 12px;
+        }
+
+        .privacy-desc {
+            font-size: 0.75rem;
+            color: #c88160;
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #ffe0ce;
+        }
+
+        .privacy-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 6px 0;
+        }
+
+        .privacy-label {
+            font-weight: 600;
+            color: #9b5a42;
+            font-size: 0.9rem;
+        }
+
+        .privacy-label small {
+            font-weight: normal;
+            font-size: 0.7rem;
+            color: #bf7a5a;
+            display: block;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ffcfb8;
+            transition: 0.3s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #ff9a76;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .data-actions {
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid #ffe0ce;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .priv-btn {
+            background: #ffe1d2;
+            border: none;
+            padding: 8px;
+            border-radius: 40px;
+            color: #b45732;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+
+        .priv-btn.danger {
+            background: #ffe0d8;
+            color: #d95228;
+        }
+
+        .priv-btn.success {
+            background: #d9f0e6;
+            color: #2d7a5c;
+        }
+
+        .priv-btn:hover {
+            background: #ffcdb6;
+        }
+
+        /* ========== 头部卡片 ========== */
+        .header-card {
+            background: rgba(255, 248, 240, 0.92);
+            backdrop-filter: blur(2px);
+            border-radius: 48px;
+            padding: 28px 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 12px 28px rgba(160, 80, 40, 0.08);
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #db6e48, #b14524);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+
+        .subhead {
+            color: #c16d4b;
+            margin-bottom: 24px;
+            border-bottom: 1px dashed #ffcfb0;
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        /* ========== 实时时钟样式 ========== */
+        .realtime-clock {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: linear-gradient(135deg, #ff9a76, #ffb89a);
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(255, 154, 118, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .realtime-clock .clock-icon {
+            font-size: 1rem;
+        }
+
+        .realtime-clock .clock-time {
+            font-family: 'Monaco', 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            margin: 16px 0 12px;
+        }
+
+        .func-btn {
+            min-width: 150px;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 40px;
+            background: #ff9a76;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 12px rgba(220, 100, 50, 0.2);
+        }
+
+        .func-btn:hover {
+            background: #f16436;
+            transform: translateY(-2px);
+        }
+
+        /* ========== 统计卡片 ========== */
+        .stats-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            margin-bottom: 36px;
+        }
+
+        .stat-card {
+            flex: 1;
+            min-width: 170px;
+            background: #fffaf5;
+            border-radius: 32px;
+            padding: 18px 22px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.03);
+            border: 1px solid #ffebdf;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        }
+
+        .stat-num {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #c5623e;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: #b27b60;
+            font-weight: 500;
+            margin-top: 8px;
+        }
+
+        /* ========== 数据表格区域 ========== */
+        .data-section {
+            background: #fffcf7;
+            border-radius: 48px;
+            padding: 24px 28px;
+            box-shadow: 0 20px 35px rgba(140, 70, 30, 0.08);
+            border: 1px solid #ffe6d8;
+            margin-bottom: 30px;
+            transition: all 0.2s ease;
+        }
+
+        .data-section:hover {
+            box-shadow: 0 24px 40px rgba(140, 70, 30, 0.12);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #bc6342;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            border-left: 6px solid #ffa271;
+            padding-left: 18px;
+        }
+
+        .title-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .privacy-badge {
+            background: #ffd9ca;
+            border-radius: 30px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            color: #b8532c;
+        }
+
+        .clear-record-btn {
+            background: #ffded0;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 40px;
+            color: #b45a3a;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .clear-record-btn:hover {
+            background: #ffc6b0;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 24px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .data-table th {
+            background: #fee7dd;
+            color: #a55132;
+            padding: 12px 8px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .data-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #ffe0d0;
+            color: #7a4f3a;
+            word-break: break-word;
+        }
+
+        .data-table tr:hover {
+            background: #fff5ed;
+        }
+
+        .delete-btn, .delete-log-btn {
+            background: #ffb69a;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 30px;
+            color: #782e0e;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.2s;
+        }
+
+        .delete-btn:hover, .delete-log-btn:hover {
+            background: #e46234;
+            color: white;
+            transform: scale(1.02);
+        }
+
+        .empty-tip {
+            text-align: center;
+            padding: 30px;
+            color: #c39478;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            color: #cb906f;
+            font-size: 0.75rem;
+            margin-top: 24px;
+            padding: 16px;
+            border-top: 1px solid #ffe0ce;
+        }
+
+        @media (max-width: 700px) {
+            .privacy-panel { width: 300px; right: 10px; top: 70px; }
+            .privacy-toggle { width: 44px; height: 44px; font-size: 22px; }
+            .data-table { font-size: 0.75rem; }
+            .realtime-clock { position: static; margin-bottom: 15px; display: inline-flex; }
+            .header-card { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- 隐私侧边栏按钮 -->
+    <div class="privacy-corner">
+        <button class="privacy-toggle" id="privacyToggleBtn" title="隐私数据设置">🔒</button>
+        <div class="privacy-panel" id="privacyPanel">
+            <h3>🔐 隐私数据控制中心</h3>
+            <div class="privacy-desc">管理您的表单数据存储权限，关闭后不再记录新数据，已有数据可手动清除。</div>
+            <div class="privacy-item"><div class="privacy-label">📇 保存注册用户 <small>用户账号、邮箱等</small></div><label class="toggle-switch"><input type="checkbox" id="privacySaveUsers"><span class="slider"></span></label></div>
+            <div class="privacy-item"><div class="privacy-label">📋 记录登录验证日志 <small>登录尝试记录</small></div><label class="toggle-switch"><input type="checkbox" id="privacySaveLoginLogs"><span class="slider"></span></label></div>
+            <div class="privacy-item"><div class="privacy-label">📝 记录注册提交日志 <small>注册尝试记录</small></div><label class="toggle-switch"><input type="checkbox" id="privacySaveRegLogs"><span class="slider"></span></label></div>
+            <div class="privacy-item"><div class="privacy-label">📊 保存问卷提交记录 <small>问卷答案及内容</small></div><label class="toggle-switch"><input type="checkbox" id="privacySaveSurveys"><span class="slider"></span></label></div>
+            <div class="data-actions">
+                <button class="priv-btn" id="exportAllDataBtn">📎 导出所有数据 (JSON)</button>
+                <button class="priv-btn danger" id="anonymizeDataBtn">🕊️ 一键匿名化处理</button>
+                <button class="priv-btn success" id="restoreAnonymizedDataBtn">🔄 恢复匿名化数据</button>
+                <button class="priv-btn danger" id="resetAllPrivacyDataBtn">⚠️ 清空所有储存数据</button>
+            </div>
+            <div style="font-size:11px; text-align:center; margin-top:16px; color:#cb7c59;">隐私设置实时生效 | 恢复功能仅对本次匿名化有效</div>
+        </div>
+    </div>
+
+    <!-- 头部区域 -->
+    <div class="header-card">
+        <div class="realtime-clock" id="realtimeClock">
+            <span class="clock-icon">🕐</span>
+            <span class="clock-time" id="clockTime">--:--:--</span>
+        </div>
+        <h1>☀️ 在线表单系统</h1>
+        <div class="subhead">注册/登录/问卷 | 隐私开关+数据控制 | 管理中心</div>
+        <div class="btn-row">
+            <button class="func-btn" id="openLoginBtn">🔐 登录表单</button>
+            <button class="func-btn" id="openRegisterBtn">📝 注册表单</button>
+            <button class="func-btn" id="openSurveyBtn">📊 优化问卷</button>
+        </div>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="totalRegCount">0</div><div class="stat-label">注册用户数</div></div>
+        <div class="stat-card"><div class="stat-num" id="totalLoginAttempts">0</div><div class="stat-label">登录验证总次数</div></div>
+        <div class="stat-card"><div class="stat-num" id="totalRegAttempts">0</div><div class="stat-label">注册提交总次数</div></div>
+        <div class="stat-card"><div class="stat-num" id="surveySubmitCount">0</div><div class="stat-label">问卷提交次数</div></div>
+    </div>
+
+    <!-- 数据表格区域 -->
+    <div class="data-section"><div class="section-title"><div class="title-left">📇 注册用户数据 <span class="privacy-badge" id="userPrivacyBadge">保存中</span></div><button class="clear-record-btn" id="clearAllUsersBtn">🗑️ 清空所有用户</button></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>账号</th><th>邮箱</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="userTableBody"><tr><td colspan="4" class="empty-tip">暂无注册用户</td></tr></tbody></table></div></div>
+
+    <div class="data-section"><div class="section-title"><div class="title-left">📋 登录验证记录 <span class="privacy-badge" id="loginLogPrivacyBadge">保存中</span></div><button class="clear-record-btn" id="clearAllLoginLogsBtn">🗑️ 清空所有登录记录</button></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>时间</th><th>用户名</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="loginLogBody"><tr><td colspan="4" class="empty-tip">暂无登录记录</td></tr></tbody></table></div></div>
+
+    <div class="data-section"><div class="section-title"><div class="title-left">📝 注册提交记录 <span class="privacy-badge" id="regLogPrivacyBadge">保存中</span></div><button class="clear-record-btn" id="clearAllRegLogsBtn">🗑️ 清空所有注册记录</button></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>时间</th><th>账号</th><th>验证结果</th><th>操作</th></tr></thead><tbody id="regLogBody"><tr><td colspan="4" class="empty-tip">暂无注册记录</td></tr></tbody></table></div></div>
+
+    <div class="data-section"><div class="section-title"><div class="title-left">📋 问卷提交详情记录 <span class="privacy-badge" id="surveyPrivacyBadge">保存中</span></div><button class="clear-record-btn" id="clearAllSurveyBtn">🗑️ 清空所有问卷记录</button></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>时间</th><th>姓名</th><th>年龄</th><th>职业</th><th>满意度</th><th>偏好功能</th><th>使用频率</th><th>推荐度</th><th>使用场景</th><th>建议</th><th>操作</th></tr></thead><tbody id="surveyDetailBody"><tr><td colspan="11" class="empty-tip">暂无问卷记录</td></tr></tbody></table></div></div>
+    <footer>⭐ 隐私开关控制后续数据是否保存 | 匿名化会备份原始数据，支持一键恢复 | 实时时钟展示当前时间</footer>
+</div>
+
+<script>
+    //  实时时钟功能 
+    function updateClock() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        const weekday = weekdays[now.getDay()];
+        const timeString = `${hours}:${minutes}:${seconds}`;
+        const dateString = `${year}/${month}/${day} ${weekday}`;
+        const clockElement = document.getElementById('clockTime');
+        if (clockElement) {
+            clockElement.innerHTML = `${dateString} ${timeString}`;
+        }
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    //  隐私设置管理 
+    let privacy = { saveUsers: true, saveLoginLogs: true, saveRegLogs: true, saveSurveys: true };
+    
+    function loadPrivacy() {
+        const stored = localStorage.getItem('warm_privacy_settings');
+        if (stored) { try { const p = JSON.parse(stored); privacy = { ...privacy, ...p }; } catch(e) {} }
+        document.getElementById('privacySaveUsers').checked = privacy.saveUsers;
+        document.getElementById('privacySaveLoginLogs').checked = privacy.saveLoginLogs;
+        document.getElementById('privacySaveRegLogs').checked = privacy.saveRegLogs;
+        document.getElementById('privacySaveSurveys').checked = privacy.saveSurveys;
+        updatePrivacyBadges();
+    }
+    
+    function savePrivacy() { localStorage.setItem('warm_privacy_settings', JSON.stringify(privacy)); updatePrivacyBadges(); }
+    
+    function updatePrivacyBadges() {
+        document.getElementById('userPrivacyBadge').innerText = privacy.saveUsers ? '✅ 保存中' : '⛔ 已暂停';
+        document.getElementById('loginLogPrivacyBadge').innerText = privacy.saveLoginLogs ? '✅ 保存中' : '⛔ 已暂停';
+        document.getElementById('regLogPrivacyBadge').innerText = privacy.saveRegLogs ? '✅ 保存中' : '⛔ 已暂停';
+        document.getElementById('surveyPrivacyBadge').innerText = privacy.saveSurveys ? '✅ 保存中' : '⛔ 已暂停';
+    }
+
+    //  数据模型 
+    let users = [], loginAttempts = [], regAttempts = [], surveySubmissions = [];
+    let backupUsers = null, backupLoginAttempts = null, backupRegAttempts = null, backupSurveySubmissions = null;
+    let isAnonymized = false;
+    
+    function generateId() { return Date.now() + '-' + Math.random().toString(36).substr(2, 8); }
+
+    function loadData() {
+        users = JSON.parse(localStorage.getItem('warm_users') || '[]');
+        loginAttempts = JSON.parse(localStorage.getItem('warm_login_logs') || '[]');
+        regAttempts = JSON.parse(localStorage.getItem('warm_reg_logs') || '[]');
+        surveySubmissions = JSON.parse(localStorage.getItem('warm_survey_submissions') || '[]');
+        isAnonymized = localStorage.getItem('warm_is_anonymized') === 'true';
+        if (isAnonymized) {
+            const backup = localStorage.getItem('warm_anonymize_backup');
+            if (backup) { try { const b = JSON.parse(backup); backupUsers = b.users; backupLoginAttempts = b.loginAttempts; backupRegAttempts = b.regAttempts; backupSurveySubmissions = b.surveySubmissions; } catch(e) {} }
+        }
+    }
+    //把数据保存回本地存储，刷新不丢失
+    function persistData(type) {
+        if (type === 'users') localStorage.setItem('warm_users', JSON.stringify(users));
+        if (type === 'login') localStorage.setItem('warm_login_logs', JSON.stringify(loginAttempts));
+        if (type === 'reg') localStorage.setItem('warm_reg_logs', JSON.stringify(regAttempts));
+        if (type === 'survey') localStorage.setItem('warm_survey_submissions', JSON.stringify(surveySubmissions));
+        if (!type) {
+            localStorage.setItem('warm_users', JSON.stringify(users));
+            localStorage.setItem('warm_login_logs', JSON.stringify(loginAttempts));
+            localStorage.setItem('warm_reg_logs', JSON.stringify(regAttempts));
+            localStorage.setItem('warm_survey_submissions', JSON.stringify(surveySubmissions));
+        }
+        localStorage.setItem('warm_is_anonymized', isAnonymized ? 'true' : 'false');
+        if (isAnonymized && backupUsers) localStorage.setItem('warm_anonymize_backup', JSON.stringify({ users: backupUsers, loginAttempts: backupLoginAttempts, regAttempts: backupRegAttempts, surveySubmissions: backupSurveySubmissions }));
+        else localStorage.removeItem('warm_anonymize_backup');
+    }
+
+    // 业务逻辑 
+    function registerUserWithPwd(username, email, password) {
+        if (!privacy.saveUsers) return false;
+        if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) return false;
+        users.push({ id: generateId(), username: username.trim(), email: email.trim(), password: password, registerTime: new Date().toLocaleString() });
+        persistData('users'); refreshAllUI(); return true;
+    }
+    
+    function deleteUserById(id) { users = users.filter(u => u.id != id); persistData('users'); refreshAllUI(); }
+    function clearAllUsers() { if (confirm('清空所有注册用户？')) { users = []; persistData('users'); refreshAllUI(); } }
+    
+    function addLoginAttempt(username, success) {
+        if (!privacy.saveLoginLogs) return;
+        loginAttempts.unshift({ id: generateId(), timestamp: new Date().toLocaleString(), username: username, success: success ? '✅ 成功' : '❌ 失败' });
+        if (loginAttempts.length > 200) loginAttempts = loginAttempts.slice(0, 200);
+        persistData('login'); refreshAllUI();
+    }
+    
+    function deleteLoginLogById(id) { loginAttempts = loginAttempts.filter(l => l.id != id); persistData('login'); refreshAllUI(); }
+    function clearAllLoginLogs() { if (confirm('清空所有登录记录？')) { loginAttempts = []; persistData('login'); refreshAllUI(); } }
+    
+    function addRegAttempt(username, success, failMsg = '') {
+        if (!privacy.saveRegLogs) return;
+        regAttempts.unshift({ id: generateId(), timestamp: new Date().toLocaleString(), username: username || '(未提供)', result: success ? '🎉 注册成功' : `❌ 注册失败${failMsg ? ' · ' + failMsg : ''}` });
+        if (regAttempts.length > 200) regAttempts = regAttempts.slice(0, 200);
+        persistData('reg'); refreshAllUI();
+    }
+    
+    function deleteRegLogById(id) { regAttempts = regAttempts.filter(r => r.id != id); persistData('reg'); refreshAllUI(); }
+    function clearAllRegLogs() { if (confirm('清空所有注册记录？')) { regAttempts = []; persistData('reg'); refreshAllUI(); } }
+    
+    function addSurveySubmission(submission) {
+        if (!privacy.saveSurveys) { console.warn('问卷保存被隐私开关阻止'); return false; }
+        try {
+            const newSubmission = { 
+                id: generateId(), timestamp: new Date().toLocaleString(),
+                name: submission.name || '匿名', age: submission.age || '未填', occupation: submission.occupation || '未填',
+                satisfaction: submission.satisfaction || '未选', features: submission.features || [],
+                frequency: submission.frequency || '未选', recommend: submission.recommend || '未选',
+                scene: submission.scene || '未填', suggestion: submission.suggestion || ''
+            };
+            surveySubmissions.unshift(newSubmission);
+            if (surveySubmissions.length > 200) surveySubmissions = surveySubmissions.slice(0, 200);
+            persistData('survey'); refreshAllUI();
+            return true;
+        } catch(e) { console.error('保存问卷出错:', e); return false; }
+    }
+    
+    function deleteSurveyById(id) { surveySubmissions = surveySubmissions.filter(s => s.id != id); persistData('survey'); refreshAllUI(); }
+    function clearAllSurveys() { if (confirm('清空所有问卷记录？')) { surveySubmissions = []; persistData('survey'); refreshAllUI(); } }
+    function validateLogin(username, password) { const user = users.find(u => u.username.toLowerCase() === username.toLowerCase()); return !!(user && user.password === password); }
+
+    //  匿名化与恢复 
+    function anonymizeData() {
+        if (confirm('匿名化将清除所有敏感信息并备份原始数据，是否继续？')) {
+            backupUsers = JSON.parse(JSON.stringify(users));
+            backupLoginAttempts = JSON.parse(JSON.stringify(loginAttempts));
+            backupRegAttempts = JSON.parse(JSON.stringify(regAttempts));
+            backupSurveySubmissions = JSON.parse(JSON.stringify(surveySubmissions));
+            users.forEach(u => { u.username = '匿名用户_' + u.id.slice(-4); u.email = 'hidden@anon.local'; });
+            loginAttempts.forEach(l => { l.username = '***'; });
+            regAttempts.forEach(r => { r.username = '匿名账号'; });
+            surveySubmissions.forEach(s => { s.name = '匿名'; s.suggestion = s.suggestion ? '[匿名]' + s.suggestion.slice(0,10) : '无'; });
+            isAnonymized = true;
+            persistData(); refreshAllUI();
+            alert('已匿名化，可使用"恢复匿名化数据"还原！');
+        }
+    }
+    
+    function restoreAnonymizedData() {
+        if (!isAnonymized || !backupUsers) { alert('没有可恢复的备份数据'); return; }
+        if (confirm('恢复所有被匿名化的原始数据？')) {
+            users = JSON.parse(JSON.stringify(backupUsers));
+            loginAttempts = JSON.parse(JSON.stringify(backupLoginAttempts));
+            regAttempts = JSON.parse(JSON.stringify(backupRegAttempts));
+            surveySubmissions = JSON.parse(JSON.stringify(backupSurveySubmissions));
+            backupUsers = null; backupLoginAttempts = null; backupRegAttempts = null; backupSurveySubmissions = null;
+            isAnonymized = false;
+            persistData(); refreshAllUI();
+            alert('数据已恢复至匿名化前状态！');
+        }
+    }
+    
+    function resetAllStorageData() {
+        if (confirm('⚠️ 清空所有数据？不可恢复！')) {
+            localStorage.removeItem('warm_users'); localStorage.removeItem('warm_login_logs');
+            localStorage.removeItem('warm_reg_logs'); localStorage.removeItem('warm_survey_submissions');
+            localStorage.removeItem('warm_anonymize_backup'); localStorage.removeItem('warm_is_anonymized');
+            privacy = { saveUsers: true, saveLoginLogs: true, saveRegLogs: true, saveSurveys: true };
+            savePrivacy(); loadData(); refreshAllUI();
+            backupUsers = null; isAnonymized = false;
+            alert('已清空');
+        }
+    }
+    
+    function exportAllData() {
+        const data = { users, loginAttempts, regAttempts, surveySubmissions, privacy, isAnonymized, exportTime: new Date().toLocaleString() };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = `form_data_${Date.now()}.json`; a.click(); URL.revokeObjectURL(blob);
+    }
+
+    //  UI 渲染 
+    function escapeHtml(str) { if (!str) return ''; return String(str).replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+    
+    function renderTables() {
+        document.getElementById('userTableBody').innerHTML = users.length ? users.map(u => `<tr><td>${escapeHtml(u.username)}</td><td>${escapeHtml(u.email)}</td><td>${escapeHtml(u.registerTime)}</td><td><button class="delete-btn" data-id="${u.id}" data-type="user">删除</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty-tip">暂无注册用户</td></tr>';
+        document.querySelectorAll('.delete-btn[data-type="user"]').forEach(btn => btn.addEventListener('click', () => deleteUserById(btn.dataset.id)));
+        
+        document.getElementById('loginLogBody').innerHTML = loginAttempts.length ? loginAttempts.slice(0,20).map(l => `<tr><td>${escapeHtml(l.timestamp)}</td><td>${escapeHtml(l.username)}</td><td>${escapeHtml(l.success)}</td><td><button class="delete-log-btn" data-id="${l.id}" data-type="login">删除</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty-tip">暂无登录记录</td></tr>';
+        document.querySelectorAll('.delete-log-btn[data-type="login"]').forEach(btn => btn.addEventListener('click', () => deleteLoginLogById(btn.dataset.id)));
+        
+        document.getElementById('regLogBody').innerHTML = regAttempts.length ? regAttempts.slice(0,20).map(r => `<tr><td>${escapeHtml(r.timestamp)}</td><td>${escapeHtml(r.username)}</td><td>${escapeHtml(r.result)}</td><td><button class="delete-log-btn" data-id="${r.id}" data-type="reg">删除</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty-tip">暂无注册记录</td></tr>';
+        document.querySelectorAll('.delete-log-btn[data-type="reg"]').forEach(btn => btn.addEventListener('click', () => deleteRegLogById(btn.dataset.id)));
+        
+        document.getElementById('surveyDetailBody').innerHTML = surveySubmissions.length ? surveySubmissions.slice(0,20).map(s => `<tr>
+            <td>${escapeHtml(s.timestamp)}</td><td>${escapeHtml(s.name)}</td><td>${escapeHtml(s.age)}</td><td>${escapeHtml(s.occupation)}</td>
+            <td>${escapeHtml(s.satisfaction)}</td><td>${escapeHtml(Array.isArray(s.features)?s.features.join('、'):s.features)}</td>
+            <td>${escapeHtml(s.frequency)}</td><td>${escapeHtml(s.recommend)}</td><td>${escapeHtml(s.scene)}</td>
+            <td style="max-width:150px;">${escapeHtml(s.suggestion)}</td>
+            <td><button class="delete-log-btn" data-id="${s.id}" data-type="survey">删除</button></td>
+        </tr>`).join('') : '<tr><td colspan="11" class="empty-tip">暂无问卷记录</td></tr>';
+        document.querySelectorAll('.delete-log-btn[data-type="survey"]').forEach(btn => btn.addEventListener('click', () => deleteSurveyById(btn.dataset.id)));
+    }
+    
+    function refreshStats() {
+        document.getElementById('totalRegCount').innerText = users.length;
+        document.getElementById('totalLoginAttempts').innerText = loginAttempts.length;
+        document.getElementById('totalRegAttempts').innerText = regAttempts.length;
+        document.getElementById('surveySubmitCount').innerText = surveySubmissions.length;
+    }
+    
+    function refreshAllUI() { renderTables(); refreshStats(); }
+
+    //  弹窗函数（修复版） 
+    function openFormWindow(name, features, htmlContent) {
+        const win = window.open('', name, features);
+        if(win) {
+            win.document.write(htmlContent);
+            win.document.close();
+            win.focus();
+        } else {
+            alert("请允许弹出窗口，然后重试");
+        }
+    }
+
+    // 登录窗口HTML（修复版） 
+    const loginHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>登录</title>
+    <style>
+        body{font-family:system-ui;background:#fff6ef;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:20px}
+        .card{max-width:400px;width:100%;background:white;border-radius:40px;padding:30px;box-shadow:0 20px 35px rgba(0,0,0,0.1)}
+        h2{color:#b45532}
+        .form-group{margin-bottom:20px}
+        label{font-weight:600;color:#9b5a42;display:block;margin-bottom:6px}
+        input{width:100%;padding:12px;border-radius:28px;border:1px solid #ffceb5;background:#fffbf8;box-sizing:border-box}
+        button{background:#ff9a76;border:none;padding:12px;border-radius:40px;color:white;font-weight:bold;width:100%;cursor:pointer;font-size:1rem}
+        .msg{margin-top:15px;text-align:center;color:#e46234}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🔐 登录</h2>
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="loginUser" placeholder="请输入用户名">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="loginPwd" placeholder="请输入密码">
+        </div>
+        <button id="doLoginBtn">登录</button>
+        <div id="loginMsg" class="msg"></div>
+    </div>
+    <script>
+        document.getElementById('doLoginBtn').onclick = function() {
+            var u = document.getElementById('loginUser').value.trim();
+            var p = document.getElementById('loginPwd').value;
+            if(!u||!p){ document.getElementById('loginMsg').innerText='请填写完整'; return; }
+            try {
+                var v = window.opener.validateLogin(u, p);
+                window.opener.addLoginAttempt(u, v);
+                if(v){ alert('登录成功'); window.close(); }
+                else { document.getElementById('loginMsg').innerText='用户名或密码错误'; }
+            } catch(e) {
+                document.getElementById('loginMsg').innerText='错误：' + e.message;
+            }
+        };
+    <\/script>
+</body>
+</html>`;
+
+    //  注册窗口HTML（修复版） 
+    const registerHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>注册</title>
+    <style>
+        body{font-family:system-ui;background:#fff6ef;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:20px}
+        .card{max-width:450px;width:100%;background:white;border-radius:40px;padding:30px;box-shadow:0 20px 35px rgba(0,0,0,0.1)}
+        h2{color:#b45532}
+        .form-group{margin-bottom:18px}
+        label{font-weight:600;color:#9b5a42;display:block;margin-bottom:6px}
+        input{width:100%;padding:12px;border-radius:28px;border:1px solid #ffceb5;background:#fffbf8;box-sizing:border-box}
+        button{background:#ff9a76;border:none;padding:12px;border-radius:40px;color:white;font-weight:bold;width:100%;cursor:pointer;font-size:1rem}
+        .msg{margin-top:15px;text-align:center;color:#e46234}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📝 注册</h2>
+        <div class="form-group">
+            <label>用户名</label>
+            <input type="text" id="regName" placeholder="昵称/账号">
+        </div>
+        <div class="form-group">
+            <label>邮箱</label>
+            <input type="email" id="regEmail" placeholder="your@email.com">
+        </div>
+        <div class="form-group">
+            <label>密码</label>
+            <input type="password" id="regPwd" placeholder="至少4位">
+        </div>
+        <div class="form-group">
+            <label>确认密码</label>
+            <input type="password" id="regPwd2" placeholder="再次输入">
+        </div>
+        <button id="doRegBtn">注册</button>
+        <div id="regMsg" class="msg"></div>
+    </div>
+    <script>
+        document.getElementById('doRegBtn').onclick = function() {
+            var n = document.getElementById('regName').value.trim();
+            var e = document.getElementById('regEmail').value.trim();
+            var p = document.getElementById('regPwd').value;
+            var p2 = document.getElementById('regPwd2').value;
+            if(!n||!e||!p){ document.getElementById('regMsg').innerText='请填写完整'; return; }
+            if(p!==p2){ document.getElementById('regMsg').innerText='密码不一致'; return; }
+            if(p.length<4){ document.getElementById('regMsg').innerText='密码至少4位'; return; }
+            if(!e.includes('@')){ document.getElementById('regMsg').innerText='邮箱格式错误'; return; }
+            try {
+                var r = window.opener.registerUserWithPwd(n, e, p);
+                window.opener.addRegAttempt(n, r);
+                if(r){
+                    alert('注册成功！');
+                    window.close();
+                } else {
+                    document.getElementById('regMsg').innerText='注册失败：账号已存在';
+                }
+            } catch(e) {
+                document.getElementById('regMsg').innerText='错误：' + e.message;
+            }
+        };
+    <\/script>
+</body>
+</html>`;
+
+    // 问卷窗口HTML（修复版） 
+    const surveyHtml = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>用户问卷</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:system-ui;background:linear-gradient(135deg,#fff7ef 0%,#feecd9 100%);padding:30px 20px;display:flex;justify-content:center;align-items:center;min-height:100vh}
+        .card{max-width:700px;width:100%;background:white;border-radius:48px;padding:35px;box-shadow:0 25px 50px rgba(100,60,20,0.15)}
+        h2{color:#b45532;margin-bottom:8px}
+        .sub{color:#c87a5a;font-size:0.85rem;margin-bottom:25px;padding-bottom:15px;border-bottom:2px dashed #ffdecb}
+        .form-group{margin-bottom:22px}
+        label{font-weight:600;color:#9b5a42;display:block;margin-bottom:8px}
+        input,select,textarea{width:100%;padding:12px 16px;border-radius:28px;border:1.5px solid #ffceb5;background:#fffbf8;font-size:0.95rem;transition:0.2s;outline:none}
+        input:focus,select:focus,textarea:focus{border-color:#ff9a76;box-shadow:0 0 0 3px rgba(255,154,118,0.2)}
+        .row{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+        .radio-group,.checkbox-group{display:flex;flex-wrap:wrap;gap:15px;margin-top:5px}
+        .radio-group label,.checkbox-group label{font-weight:normal;display:flex;align-items:center;gap:6px;cursor:pointer}
+        textarea{resize:vertical;min-height:80px}
+        button{background:#ff9a76;border:none;padding:14px;border-radius:50px;color:white;font-weight:bold;font-size:1rem;cursor:pointer;width:100%;transition:0.2s;margin-top:10px}
+        button:hover{background:#f16436;transform:translateY(-2px)}
+        .error-msg{color:#e46234;text-align:center;margin-top:10px;font-size:0.85rem}
+        @media (max-width:600px){.card{padding:25px}.row{grid-template-columns:1fr}}
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>📊 用户深度体验问卷</h2>
+        <div class="sub">您的反馈对我们至关重要，感谢参与！</div>
+        <div class="form-group">
+            <label>👤 姓名/昵称</label>
+            <input type="text" id="surveyName" placeholder="如何称呼您？">
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label>📅 年龄区间</label>
+                <select id="age">
+                    <option>18岁以下</option>
+                    <option>18-25岁</option>
+                    <option>26-35岁</option>
+                    <option>36-45岁</option>
+                    <option>46-55岁</option>
+                    <option>55岁以上</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>💼 职业领域</label>
+                <select id="occupation">
+                    <option>学生</option>
+                    <option>互联网/IT</option>
+                    <option>金融/财务</option>
+                    <option>教育/培训</option>
+                    <option>医疗健康</option>
+                    <option>制造业</option>
+                    <option>自由职业</option>
+                    <option>其他</option>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>⭐ 整体满意度</label>
+            <div class="radio-group">
+                <label><input type="radio" name="satisfaction" value="非常满意"> 😍 非常满意</label>
+                <label><input type="radio" name="satisfaction" value="满意"> 😊 满意</label>
+                <label><input type="radio" name="satisfaction" value="一般"> 😐 一般</label>
+                <label><input type="radio" name="satisfaction" value="不满意"> 🙁 不满意</label>
+                <label><input type="radio" name="satisfaction" value="非常不满意"> 😭 非常不满意</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>🔧 您最喜欢的功能</label>
+            <div class="checkbox-group">
+                <label><input type="checkbox" value="数据隐私控制"> 🔒 数据隐私控制</label>
+                <label><input type="checkbox" value="一键导出数据"> 📎 一键导出数据</label>
+                <label><input type="checkbox" value="表单快速填写"> ⚡ 表单快速填写</label>
+                <label><input type="checkbox" value="数据可视化"> 📊 数据可视化</label>
+                <label><input type="checkbox" value="匿名化处理"> 🕊️ 匿名化处理</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>📈 使用频率</label>
+            <div class="radio-group">
+                <label><input type="radio" name="frequency" value="每日多次"> 每日多次</label>
+                <label><input type="radio" name="frequency" value="每天1次"> 每天1次</label>
+                <label><input type="radio" name="frequency" value="每周几次"> 每周几次</label>
+                <label><input type="radio" name="frequency" value="偶尔使用"> 偶尔使用</label>
+                <label><input type="radio" name="frequency" value="第一次使用"> 第一次使用</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>🎯 推荐意愿</label>
+            <div class="radio-group">
+                <label><input type="radio" name="recommend" value="一定会"> 🌟 一定会推荐</label>
+                <label><input type="radio" name="recommend" value="可能会"> 👍 可能会</label>
+                <label><input type="radio" name="recommend" value="不确定"> 🤔 不确定</label>
+                <label><input type="radio" name="recommend" value="不太会"> 👎 不太会</label>
+                <label><input type="radio" name="recommend" value="绝对不会"> 💔 绝对不会</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>🏠 主要使用场景</label>
+            <select id="scene">
+                <option>工作/办公</option>
+                <option>学习/研究</option>
+                <option>个人数据管理</option>
+                <option>团队协作</option>
+                <option>其他</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>💬 建议与留言</label>
+            <textarea id="suggestion" placeholder="请留下您的宝贵意见..."></textarea>
+        </div>
+        <button id="submitSurveyBtn">✨ 提交问卷 · 感谢支持 ✨</button>
+        <div id="errorMsg" class="error-msg"></div>
+    </div>
+    <script>
+        document.getElementById('submitSurveyBtn').onclick = function() {
+            var name = document.getElementById('surveyName').value.trim() || '匿名用户';
+            var age = document.getElementById('age').value;
+            var occupation = document.getElementById('occupation').value;
+            var satisfactionElem = document.querySelector('input[name="satisfaction"]:checked');
+            var features = [];
+            document.querySelectorAll('.checkbox-group input:checked').forEach(c=>features.push(c.value));
+            var frequencyElem = document.querySelector('input[name="frequency"]:checked');
+            var recommendElem = document.querySelector('input[name="recommend"]:checked');
+            var scene = document.getElementById('scene').value;
+            var suggestion = document.getElementById('suggestion').value;
+
+            if(!satisfactionElem){ document.getElementById('errorMsg').innerText='请选择满意度评分'; return; }
+            
+            var data = {
+                name: name,
+                age: age,
+                occupation: occupation,
+                satisfaction: satisfactionElem.value,
+                features: features,
+                frequency: frequencyElem ? frequencyElem.value : '未选择',
+                recommend: recommendElem ? recommendElem.value : '未选择',
+                scene: scene,
+                suggestion: suggestion
+            };
+            
+            try {
+                window.opener.addSurveySubmission(data);
+                alert('问卷提交成功！');
+                window.close();
+            } catch(e) {
+                document.getElementById('errorMsg').innerText='提交失败：' + e.message;
+            }
+        };
+    <\/script>
+</body>
+</html>`;
+
+    //  事件绑定 
+    document.getElementById('privacyToggleBtn').onclick = () => document.getElementById('privacyPanel').classList.toggle('show');
+    document.getElementById('privacySaveUsers').onchange = (e) => { privacy.saveUsers = e.target.checked; savePrivacy(); };
+    document.getElementById('privacySaveLoginLogs').onchange = (e) => { privacy.saveLoginLogs = e.target.checked; savePrivacy(); };
+    document.getElementById('privacySaveRegLogs').onchange = (e) => { privacy.saveRegLogs = e.target.checked; savePrivacy(); };
+    document.getElementById('privacySaveSurveys').onchange = (e) => { privacy.saveSurveys = e.target.checked; savePrivacy(); };
+    document.getElementById('exportAllDataBtn').onclick = exportAllData;
+    document.getElementById('anonymizeDataBtn').onclick = anonymizeData;
+    document.getElementById('restoreAnonymizedDataBtn').onclick = restoreAnonymizedData;
+    document.getElementById('resetAllPrivacyDataBtn').onclick = resetAllStorageData;
+    document.getElementById('clearAllUsersBtn').onclick = clearAllUsers;
+    document.getElementById('clearAllLoginLogsBtn').onclick = clearAllLoginLogs;
+    document.getElementById('clearAllRegLogsBtn').onclick = clearAllRegLogs;
+    document.getElementById('clearAllSurveyBtn').onclick = clearAllSurveys;
+    document.getElementById('openLoginBtn').onclick = () => openFormWindow('loginWin', 'width=480,height=550', loginHtml);
+    document.getElementById('openRegisterBtn').onclick = () => openFormWindow('registerWin', 'width=500,height=680', registerHtml);
+    document.getElementById('openSurveyBtn').onclick = () => openFormWindow('surveyWin', 'width=750,height=850', surveyHtml);
+
+    // 点击外部关闭侧边栏
+    document.addEventListener('click', function(e) {
+        const panel = document.getElementById('privacyPanel'), btn = document.getElementById('privacyToggleBtn');
+        if (panel.classList.contains('show') && !panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('show');
+    });
+
+    // 初始化
+    loadPrivacy();
+    loadData();
+    refreshAllUI();
+</script>
+</body>
+</html>
